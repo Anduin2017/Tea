@@ -45,6 +45,24 @@ judge() {
 }
 
 #==========================
+# Port exist check function
+#==========================
+function port_exist_check() {
+  if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
+    print_ok "$1 is not in use"
+    sleep 1
+  else
+    print_error "Warning: $1 is occupied"
+    lsof -i:"$1"
+    print_error "Will kill the occupied process in 5s"
+    sleep 5
+    lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
+    print_ok "Killed the occupied process"
+    sleep 1
+  fi
+}
+
+#==========================
 # Begin of the installation
 #==========================
 clear
@@ -112,6 +130,14 @@ if ! curl -s --head  --request GET http://www.google.com/generate_204 | grep "20
   exit 1
 fi
 judge "Test network"
+
+#==========================
+# Check port 80 & 443
+#==========================
+print_ok "Checking port 80 & 443..."
+port_exist_check 80
+port_exist_check 443
+judge "Check port 80 & 443"
 
 #==========================
 # Remove ubuntu-advantage advertisement
