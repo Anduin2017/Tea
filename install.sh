@@ -179,8 +179,16 @@ print_ok "Enabling UFW..."
 sudo apt install -y ufw
 sudo ufw allow 22,80,443/tcp
 sudo ufw allow 22,80,443/udp
-sudo ufw enable
-sudo ufw status
+echo "y" | sudo ufw enable
+judge "Enable UFW"
+
+
+#==========================
+# Deploy Tracer on Port 8080
+#==========================
+print_ok "Deploying Tracer on Port 8080..."
+curl -sL https://gitlab.aiursoft.cn/aiursoft/tracer/-/raw/master/install.sh | sudo bash -s 8080
+judge "Deploy Tracer on Port 8080"
 
 #==========================
 # Install xray
@@ -189,3 +197,4 @@ print_ok "Installing xray..."
 sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
 sudo touch /usr/local/etc/xray/config.json
 sudo systemctl restart xray.service
+judge "Install xray"
