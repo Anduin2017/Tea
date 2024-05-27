@@ -152,7 +152,7 @@ judge "Remove snap"
 # Set apt sources
 #==========================
 print_ok "Setting apt sources..."
-sudo add-apt-repository ppa:longsleep/golang-backports -y
+#sudo add-apt-repository ppa:longsleep/golang-backports -y
 sudo add-apt-repository -y multiverse -n
 sudo add-apt-repository -y universe -n
 sudo add-apt-repository -y restricted -n
@@ -164,8 +164,8 @@ judge "Add multiverse, universe, restricted"
 print_ok "Installing basic packages..."
 sudo systemctl daemon-reload
 sudo apt update
-sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq golang-go debian-keyring debian-archive-keyring xcaddy
-judge "Install wget,gpg,curl,apt-transport-https,software-properties-common,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,dnsutils,zip,unzip,jq,golang-go,debian-keyring,debian-archive-keyring,xcaddy"
+sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq golang-go debian-keyring debian-archive-keyring
+judge "Install wget,gpg,curl,apt-transport-https,software-properties-common,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,dnsutils,zip,unzip,jq,golang-go,debian-keyring,debian-archive-keyring"
 
 #==========================
 # Enable BBR
