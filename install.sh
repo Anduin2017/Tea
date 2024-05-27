@@ -295,11 +295,6 @@ print_ok "Setting up xray..."
 uuid=$(cat /proc/sys/kernel/random/uuid)
 sudo bash -c "cat > /usr/local/etc/xray/config.json" <<EOF
 {
-    "log":{
-        "access": "/var/log/xray/access.log",
-        "error": "/var/log/xray/error.log",
-        "loglevel": "warning"
-    },
     "inbounds": [
         {
             "listen": "0.0.0.0",
