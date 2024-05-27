@@ -176,8 +176,23 @@ enable_bbr_force()
     echo 'net.core.default_qdisc=fq' | tee -a /etc/sysctl.conf
     echo 'net.ipv4.tcp_congestion_control=bbr' | tee -a /etc/sysctl.conf
     sysctl -p
+    judge "Enable BBR"
 }
 sysctl net.ipv4.tcp_available_congestion_control | grep -q bbr ||  enable_bbr_force
+print_ok "BBR enabled"
+
+#==========================
+# Enable Cake
+#==========================
+enable_cake()
+{
+    echo "Cake not enabled. Enabling Cake..."
+    echo 'net.core.default_qdisc=cake' | sudo tee /etc/sysctl.conf
+    sudo sysctl -p
+    judge "Enable Cake"
+}
+sysctl net.core.default_qdisc | grep -q cake ||  enable_cake
+print_ok "Cake enabled"
 
 #==========================
 # Set timezone
