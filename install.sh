@@ -254,6 +254,9 @@ $domain {
     reverse_proxy http://localhost:8080 {
 
     }
+
+    reverse_proxy /admin/* localhost:10000 {
+    }
 }
 EOF
 sudo caddy validate --config /etc/caddy/Caddyfile
@@ -269,3 +272,57 @@ sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-re
 sudo touch /usr/local/etc/xray/config.json
 sudo systemctl restart xray.service
 judge "Install xray"
+
+#==========================
+# Setup xray
+#==========================
+print_ok "Setting up xray..."
+uuid=$(cat /proc/sys/kernel/random/uuid)
+sudo bash -c "cat > /usr/local/etc/xray/config.json" <<EOF
+{
+    "log":{
+        "access": "/var/log/xray/access.log",
+        "error": "/var/log/xray/error.log",
+        "loglevel": "warning"
+    },
+    "inbounds": [
+        {
+            "listen": "0.0.0.0",
+            "port": 10000,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "$uuid"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/admin"
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom"
+        }
+    ]
+}
+EOF
+sudo systemctl restart xray.service
+judge "Setup xray"
+
+#==========================
+# Output connection information
+#==========================
+print_ok "Connection information"
+print_ok "Domain: $domain"
+print_ok "UUID: $uuid"
+print_ok "Tracer: https://$domain"
+print_ok "Xray: wss://$domain:10000"
+print_ok "URL (TLS+Websocket)"
+print_ok "vless://$uuid@$domain#$domain"
