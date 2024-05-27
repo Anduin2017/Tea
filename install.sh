@@ -138,3 +138,20 @@ sudo apt update
 sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq
 judge "Install wget,gpg,curl,apt-transport-https,software-properties-common,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,dnsutils,zip,unzip,jq"
 
+#==========================
+# Enable BBR
+#==========================
+enable_bbr_force()
+{
+    echo "BBR not enabled. Enabling BBR..."
+    echo 'net.core.default_qdisc=fq' | tee -a /etc/sysctl.conf
+    echo 'net.ipv4.tcp_congestion_control=bbr' | tee -a /etc/sysctl.conf
+    sysctl -p
+}
+sysctl net.ipv4.tcp_available_congestion_control | grep -q bbr ||  enable_bbr_force
+
+#==========================
+# Set timezone
+#==========================
+echo "Setting timezone..."
+sudo timedatectl set-timezone UTC
