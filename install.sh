@@ -155,3 +155,37 @@ sysctl net.ipv4.tcp_available_congestion_control | grep -q bbr ||  enable_bbr_fo
 #==========================
 echo "Setting timezone..."
 sudo timedatectl set-timezone UTC
+
+#==========================
+# Upgrade packages
+#==========================
+print_ok "Upgrading packages..."
+sudo apt update
+sudo DEBIAN_FRONTEND=noninteractive apt --purge autoremove -y
+sleep 2
+sudo DEBIAN_FRONTEND=noninteractive apt install --fix-broken  -y
+sleep 2
+sudo DEBIAN_FRONTEND=noninteractive apt install --fix-missing  -y
+sleep 2
+sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
+sleep 2
+sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y --allow-downgrades
+judge "Upgrade packages"
+
+#==========================
+# Enable UFW for 80 & 443, UDP & TCP
+#==========================
+print_ok "Enabling UFW..."
+sudo apt install -y ufw
+sudo ufw allow 22,80,443/tcp
+sudo ufw allow 22,80,443/udp
+sudo ufw enable
+sudo ufw status
+
+#==========================
+# Install xray
+#==========================
+print_ok "Installing xray..."
+sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+sudo touch /usr/local/etc/xray/config.json
+sudo systemctl restart xray.service
