@@ -255,7 +255,7 @@ $domain {
 
     }
 
-    reverse_proxy /admin/* localhost:10000 {
+    reverse_proxy /admin localhost:10000 {
     }
 }
 EOF
