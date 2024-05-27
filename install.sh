@@ -59,7 +59,7 @@ read
 #==========================
 read -rp "请输入你的域名信息(eg: myserver.southeastasia.cloudapp.azure.com):" domain
 print_ok "正在获取 $domain 的 IP 地址信息..."
-domain_ip=$(dig +short ${domain} | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
+domain_ip=$(dig +short ${domain} | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
 judge "获取 $domain 的 IP 地址信息 $domain_ip"
 
 print_ok "正在获取本机的 IP 地址信息..."
