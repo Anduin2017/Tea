@@ -258,6 +258,8 @@ judge "Install Caddy"
 # Deploy Tracer on Port 8080
 #==========================
 print_ok "Deploying Tracer on Port 8080..."
+port_exist_check 8080
+judge "Check port 8080"
 curl -sL https://gitlab.aiursoft.cn/aiursoft/tracer/-/raw/master/install.sh | sudo bash -s 8080
 judge "Deploy Tracer"
 sudo systemctl restart tracer
@@ -349,13 +351,15 @@ sudo bash -c "cat > /usr/local/etc/xray/config.json" <<EOF
     ]
 }
 EOF
+port_exist_check 10000
+judge "Check port 10000"
 sudo systemctl restart xray.service
 judge "Setup xray"
 
 #==========================
 # Output connection information
 #==========================
-print_ok "Connection information"
+print_ok "Connection information:"
 print_ok "Domain: $domain"
 print_ok "UUID: $uuid"
 print_ok "Tracer: https://$domain"
