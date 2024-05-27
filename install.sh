@@ -48,15 +48,15 @@ judge() {
 # Port exist check function
 #==========================
 function port_exist_check() {
-  if [[ 0 -eq $(lsof -i:"$1" | grep -i -c "listen") ]]; then
+  if [[ 0 -eq $(sudo lsof -i:"$1" | grep -i -c "listen") ]]; then
     print_ok "$1 is not in use"
     sleep 1
   else
     print_error "Warning: $1 is occupied"
-    lsof -i:"$1"
+    sudo lsof -i:"$1"
     print_error "Will kill the occupied process in 5s"
     sleep 5
-    lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | xargs kill -9
+    sudo lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | sudo xargs kill -9
     print_ok "Killed the occupied process"
     sleep 1
   fi
