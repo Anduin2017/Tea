@@ -57,26 +57,26 @@ read
 #==========================
 # Check if the DNS is correct
 #==========================
-read -rp "请输入你的域名信息(eg: myserver.southeastasia.cloudapp.azure.com):" domain
-print_ok "正在获取 $domain 的 IP 地址信息..."
+read -rp "Enter your domain(eg: myserver.southeastasia.cloudapp.azure.com):" domain
+print_ok "Getting the IP of $domain ..."
 domain_ip=$(dig +short ${domain} | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
-judge "获取 $domain 的 IP 地址信息 $domain_ip"
+judge "Got the IP of domain is $domain_ip"
 
-print_ok "正在获取本机的 IP 地址信息..."
+print_ok "Getting the local IP of this server ..."
 local_ipv4=$(curl -4 ip.sb)
-judge "获取本机的 IP 地址信息 - $local_ipv4"
+judge "Got the local IP of this server is $local_ipv4"
 
 if [[ $domain_ip == $local_ipv4 ]]; then
-  print_ok "域名解析的 IP 地址与本机 IP 地址相同"
+  print_ok "Domain name resolution IP address is the same as the local IP address"
 else
-  print_error "域名解析的 IP 地址与本机 IP 地址不同"
-  print_error "域名通过 DNS 解析的 IP 地址与 本机 IPv4 / IPv6 地址不匹配，是否继续安装？（y/n）" && read -r install
+  print_error "The IP address resolved by the domain name does not match the local IP address"
+  print_error "Are you sure to continue the installation? Enter [y/N] to continue"
   case $install in
   [yY][eE][sS] | [yY])
-    print_ok "继续安装"
+    print_ok "Continue the installation"
     ;;
   *)
-    print_error "安装终止"
+    print_error "Installation terminated"
     exit 1
     ;;
   esac
@@ -189,20 +189,11 @@ sudo timedatectl set-timezone UTC
 # Upgrade packages
 #==========================
 print_ok "Upgrading packages..."
-sudo apt update
-sudo DEBIAN_FRONTEND=noninteractive apt --purge autoremove -y
-sleep 2
-sudo DEBIAN_FRONTEND=noninteractive apt install --fix-broken  -y
-sleep 2
-sudo DEBIAN_FRONTEND=noninteractive apt install --fix-missing  -y
-sleep 2
-sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a
-sleep 2
 sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y --allow-downgrades
 judge "Upgrade packages"
 
 #==========================
-# Enable UFW for 80 & 443, UDP & TCP
+# Enable UFW for 22,80 & 443, UDP & TCP
 #==========================
 print_ok "Enabling UFW..."
 sudo apt install -y ufw
@@ -216,7 +207,7 @@ judge "Enable UFW"
 #==========================
 print_ok "Installing Caddy..."
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg --yes
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
 sudo apt update
 sudo apt install caddy
@@ -227,7 +218,9 @@ judge "Install Caddy"
 #==========================
 print_ok "Deploying Tracer on Port 8080..."
 curl -sL https://gitlab.aiursoft.cn/aiursoft/tracer/-/raw/master/install.sh | sudo bash -s 8080
-judge "Deploy Tracer on Port 8080"
+judge "Deploy Tracer"
+sudo systemctl restart tracer
+judge "Restart Tracer"
 
 #==========================
 # Setup reverse proxy
@@ -259,12 +252,14 @@ $domain {
     import hsts
     encode zstd gzip
     reverse_proxy http://localhost:8080 {
-      
+
     }
 }
 EOF
+sudo caddy validate --config /etc/caddy/Caddyfile
+judge "Setup cadddy reverse proxy"
 sudo systemctl restart caddy
-judge "Setup reverse proxy"
+judge "Restart caddy"
 
 #==========================
 # Install xray
