@@ -152,6 +152,7 @@ judge "Remove snap"
 # Set apt sources
 #==========================
 print_ok "Setting apt sources..."
+sudo add-apt-repository ppa:longsleep/golang-backports -y
 sudo add-apt-repository -y multiverse -n
 sudo add-apt-repository -y universe -n
 sudo add-apt-repository -y restricted -n
@@ -163,8 +164,8 @@ judge "Add multiverse, universe, restricted"
 print_ok "Installing basic packages..."
 sudo systemctl daemon-reload
 sudo apt update
-sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq
-judge "Install wget,gpg,curl,apt-transport-https,software-properties-common,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,dnsutils,zip,unzip,jq"
+sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq golang-go debian-keyring debian-archive-keyring xcaddy
+judge "Install wget,gpg,curl,apt-transport-https,software-properties-common,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,dnsutils,zip,unzip,jq,golang-go,debian-keyring,debian-archive-keyring,xcaddy"
 
 #==========================
 # Enable BBR
@@ -210,6 +211,16 @@ sudo ufw allow 22,80,443/udp
 echo "y" | sudo ufw enable
 judge "Enable UFW"
 
+#==========================
+# Building Caddy
+#==========================
+print_ok "Installing Caddy..."
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update
+sudo apt install caddy
+judge "Install Caddy"
 
 #==========================
 # Deploy Tracer on Port 8080
@@ -217,6 +228,43 @@ judge "Enable UFW"
 print_ok "Deploying Tracer on Port 8080..."
 curl -sL https://gitlab.aiursoft.cn/aiursoft/tracer/-/raw/master/install.sh | sudo bash -s 8080
 judge "Deploy Tracer on Port 8080"
+
+#==========================
+# Setup reverse proxy
+#==========================
+print_ok "Setting up reverse proxy from $domain to Tracer(localhost:8080)..."
+sudo bash -c "cat > /etc/caddy/Caddyfile" <<EOF
+{
+	email nobody@nodomain.com
+	log {
+		output file /var/log/caddy/caddy.log {
+			roll_size 1gb
+			roll_uncompressed
+		}
+		level info
+	}
+	servers :443 {
+		listener_wrappers {
+			http_redirect
+			tls
+		}
+	}
+}
+
+(hsts) {
+	header Strict-Transport-Security max-age=63072000
+}
+
+$domain {
+    import hsts
+    encode zstd gzip
+    reverse_proxy http://localhost:8080 {
+      
+    }
+}
+EOF
+sudo systemctl restart caddy
+judge "Setup reverse proxy"
 
 #==========================
 # Install xray
