@@ -55,6 +55,34 @@ print_ok "Please press [ENTER] to continue, or press CTRL+C to cancel."
 read
 
 #==========================
+# Check if the DNS is correct
+#==========================
+read -rp "请输入你的域名信息(eg: myserver.southeastasia.cloudapp.azure.com):" domain
+print_ok "正在获取 $domain 的 IP 地址信息..."
+domain_ip=$(dig +short ${domain} | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}")
+judge "获取 $domain 的 IP 地址信息 $domain_ip"
+
+print_ok "正在获取本机的 IP 地址信息..."
+local_ipv4=$(curl -4 ip.sb)
+judge "获取本机的 IP 地址信息 - $local_ipv4"
+
+if [[ $domain_ip == $local_ipv4 ]]; then
+  print_ok "域名解析的 IP 地址与本机 IP 地址相同"
+else
+  print_error "域名解析的 IP 地址与本机 IP 地址不同"
+  print_error "域名通过 DNS 解析的 IP 地址与 本机 IPv4 / IPv6 地址不匹配，是否继续安装？（y/n）" && read -r install
+  case $install in
+  [yY][eE][sS] | [yY])
+    print_ok "继续安装"
+    ;;
+  *)
+    print_error "安装终止"
+    exit 1
+    ;;
+  esac
+fi
+
+#==========================
 # Ensure Ubuntu 22.04
 #==========================
 print_ok "Ensure you are Ubuntu 22.04..."
