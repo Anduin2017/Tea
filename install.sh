@@ -297,7 +297,7 @@ $domain {
         reverse_proxy http://localhost:8080 {
         }
 
-        reverse_proxy /admin localhost:10000 {
+        reverse_proxy /admin http://localhost:10000 {
         }
 }
 EOF
