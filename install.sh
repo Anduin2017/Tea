@@ -45,6 +45,24 @@ judge() {
 }
 
 #==========================
+# Get UUID function
+#==========================
+get_uuid() {
+    local uuid_file="userid"
+
+    if [[ -f "$uuid_file" ]]; then
+        # If the file exists, read and return its content
+        cat "$uuid_file"
+    else
+        # If the file does not exist, generate a new UUID and write it to the file
+        local uuid
+        uuid=$(cat /proc/sys/kernel/random/uuid)
+        echo "$uuid" > "$uuid_file"
+        echo "$uuid"
+    fi
+}
+
+#==========================
 # Port exist check function
 #==========================
 function port_exist_check() {
@@ -320,7 +338,7 @@ judge "Install xray"
 # Setup xray
 #==========================
 print_ok "Setting up xray..."
-uuid=$(cat /proc/sys/kernel/random/uuid)
+uuid=$(get_uuid)
 sudo bash -c "cat > /usr/local/etc/xray/config.json" <<EOF
 {
     "inbounds": [
