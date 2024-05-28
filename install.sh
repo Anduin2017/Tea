@@ -271,35 +271,34 @@ judge "Restart Tracer"
 print_ok "Setting up reverse proxy from $domain to Tracer(localhost:8080)..."
 sudo bash -c "cat > /etc/caddy/Caddyfile" <<EOF
 {
-	email nobody@nodomain.com
-	log {
-		output file /var/log/caddy/caddy.log {
-			roll_size 1gb
-			roll_uncompressed
-		}
-		level info
-	}
-	servers :443 {
-		listener_wrappers {
-			http_redirect
-			tls
-		}
-	}
+        email nobody@nodomain.com
+        log {
+                output file /var/log/caddy/caddy.log {
+                        roll_size 1gb
+                        roll_uncompressed
+                }
+                level info
+        }
+        servers :443 {
+                listener_wrappers {
+                        http_redirect
+                        tls
+                }
+        }
 }
 
 (hsts) {
-	header Strict-Transport-Security max-age=63072000
+        header Strict-Transport-Security max-age=63072000
 }
 
 $domain {
-    import hsts
-    encode zstd gzip
-    reverse_proxy http://localhost:8080 {
+        import hsts
+        encode zstd gzip
+        reverse_proxy http://localhost:8080 {
+        }
 
-    }
-
-    reverse_proxy /admin localhost:10000 {
-    }
+        reverse_proxy /admin localhost:10000 {
+        }
 }
 EOF
 sudo caddy validate --config /etc/caddy/Caddyfile
