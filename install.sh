@@ -301,6 +301,7 @@ $domain {
         }
 }
 EOF
+sudo caddy fmt --overwrite /etc/caddy/Caddyfile
 sudo caddy validate --config /etc/caddy/Caddyfile
 judge "Setup cadddy reverse proxy"
 sudo systemctl restart caddy
