@@ -355,9 +355,9 @@ sudo bash -c "cat > /usr/local/etc/xray/config.json" <<EOF
                 "decryption": "none"
             },
             "streamSettings": {
-                "network": "ws",
-                "wsSettings": {
-                    "path": "/admin"
+                "network": "grpc",
+                "grpcSettings": {
+                    "serviceName": "admin"
                 }
             }
         }
@@ -383,4 +383,4 @@ print_ok "UUID: $uuid"
 print_ok "Tracer: https://$domain"
 print_ok "Xray: wss://$domain:10000"
 print_ok "URL (TLS+Websocket)"
-print_ok "vless://$uuid@$domain?host=$domain&path=%2Fadmin&type=ws&encryption=none&security=tls&sni=$domain#$domain"
+print_ok "vless://$uuid@$domain?host=$domain&path=admin&type=grpc&serviceName=admin&encryption=none&security=tls&sni=$domain#$domain"
