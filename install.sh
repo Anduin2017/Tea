@@ -431,8 +431,5 @@ net.ipv4.tcp_max_orphans = 32768
 # forward ipv4
 #net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
-echo "*               soft    nofile           1000000
-*               hard    nofile          1000000" >/etc/security/limits.conf
-echo "ulimit -SHn 1000000" | sudo tee -a /etc/profile
 
 print_ok "Program completed, enjoy your tea! And it's suggested to restart the server."
