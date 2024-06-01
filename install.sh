@@ -389,27 +389,27 @@ print_ok "vless://$uuid@$domain?host=$domain&path=%2Fadmin&type=ws&encryption=no
 # Optimize system
 #==========================
 if [ ! -f "/etc/sysctl.conf" ]; then
-  touch /etc/sysctl.conf
+  sudo touch /etc/sysctl.conf
 fi
-sed -i '/net.ipv4.tcp_retries2/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_fastopen/d' /etc/sysctl.conf
-sed -i '/fs.file-max/d' /etc/sysctl.conf
-sed -i '/fs.inotify.max_user_instances/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_syncookies/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_fin_timeout/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_tw_reuse/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_max_syn_backlog/d' /etc/sysctl.conf
-sed -i '/net.ipv4.ip_local_port_range/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_max_tw_buckets/d' /etc/sysctl.conf
-sed -i '/net.ipv4.route.gc_timeout/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_synack_retries/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_syn_retries/d' /etc/sysctl.conf
-sed -i '/net.core.somaxconn/d' /etc/sysctl.conf
-sed -i '/net.core.netdev_max_backlog/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_timestamps/d' /etc/sysctl.conf
-sed -i '/net.ipv4.tcp_max_orphans/d' /etc/sysctl.conf
-sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_retries2/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_fastopen/d' /etc/sysctl.conf
+sudo sed -i '/fs.file-max/d' /etc/sysctl.conf
+sudo sed -i '/fs.inotify.max_user_instances/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_syncookies/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_fin_timeout/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_tw_reuse/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_max_syn_backlog/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.ip_local_port_range/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_max_tw_buckets/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.route.gc_timeout/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_synack_retries/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_syn_retries/d' /etc/sysctl.conf
+sudo sed -i '/net.core.somaxconn/d' /etc/sysctl.conf
+sudo sed -i '/net.core.netdev_max_backlog/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_timestamps/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.tcp_max_orphans/d' /etc/sysctl.conf
+sudo sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
 
 echo "net.ipv4.tcp_retries2 = 8
 net.ipv4.tcp_slow_start_after_idle = 0
@@ -429,10 +429,10 @@ net.core.netdev_max_backlog = 32768
 net.ipv4.tcp_timestamps = 0
 net.ipv4.tcp_max_orphans = 32768
 # forward ipv4
-#net.ipv4.ip_forward = 1" >>/etc/sysctl.conf
-sysctl -p
+#net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
 echo "*               soft    nofile           1000000
 *               hard    nofile          1000000" >/etc/security/limits.conf
-echo "ulimit -SHn 1000000" >>/etc/profile
+echo "ulimit -SHn 1000000" | sudo tee -a /etc/profile
 
 print_ok "Program completed, enjoy your tea! And it's suggested to restart the server."
