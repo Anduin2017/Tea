@@ -182,7 +182,7 @@ sudo snap remove gtk-common-themes > /dev/null 2>&1
 sudo snap remove snapd-desktop-integration > /dev/null 2>&1
 sudo snap remove bare > /dev/null 2>&1
 sudo systemctl disable --now snapd
-sudo apt purge -y snapd
+DEBIAN_FRONTEND=noninteractive sudo apt purge -y snapd
 sudo rm -rf /snap /var/snap /var/lib/snapd /var/cache/snapd /usr/lib/snapd ~/snap
 cat << EOF | sudo tee -a /etc/apt/preferences.d/no-snap.pref
 Package: snapd
@@ -207,8 +207,8 @@ judge "Add multiverse, universe, restricted"
 #==========================
 print_ok "Installing basic packages..."
 sudo systemctl daemon-reload
-sudo apt update
-sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq golang-go debian-keyring debian-archive-keyring
+DEBIAN_FRONTEND=noninteractive sudo apt update
+DEBIAN_FRONTEND=noninteractive sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq golang-go debian-keyring debian-archive-keyring
 judge "Install wget,gpg,curl,apt-transport-https,software-properties-common,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,dnsutils,zip,unzip,jq,golang-go,debian-keyring,debian-archive-keyring"
 
 #==========================
@@ -255,7 +255,7 @@ judge "Upgrade packages"
 # Enable UFW for 22,80 & 443, UDP & TCP
 #==========================
 print_ok "Enabling UFW..."
-sudo apt install -y ufw
+DEBIAN_FRONTEND=noninteractive sudo apt install -y ufw
 sudo ufw allow 22,80,443/tcp
 sudo ufw allow 22,80,443/udp
 echo "y" | sudo ufw enable
@@ -265,11 +265,11 @@ judge "Enable UFW"
 # Building Caddy
 #==========================
 print_ok "Installing Caddy..."
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+DEBIAN_FRONTEND=noninteractive sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg --yes
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-sudo apt update
-sudo apt install caddy
+DEBIAN_FRONTEND=noninteractive sudo apt update
+DEBIAN_FRONTEND=noninteractive sudo apt install caddy
 judge "Install Caddy"
 
 #==========================
