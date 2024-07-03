@@ -34,7 +34,7 @@ function print_error() {
 #==========================
 # Judge function
 #==========================
-judge() {
+function judge() {
   if [[ 0 -eq $? ]]; then
     print_ok "$1 succeeded"
     sleep 1
@@ -42,6 +42,24 @@ judge() {
     print_error "$1 failed"
     exit 1
   fi
+}
+
+#==========================
+# Are you sure function
+#==========================
+function areYouSure() {
+  print_error "This script found some issue and failed to run. Continue may cause system unstable."
+  print_error "Are you sure to continue the installation? Enter [y/N] to continue"
+  read -r install
+  case $install in
+  [yY][eE][sS] | [yY])
+    print_ok "Continue the installation"
+    ;;
+  *)
+    print_error "Installation terminated"
+    exit 1
+    ;;
+  esac
 }
 
 #==========================
@@ -106,16 +124,7 @@ if [[ $domain_ip == $local_ipv4 ]]; then
   print_ok "Domain name resolution IP address is the same as the local IP address"
 else
   print_error "The IP address resolved by the domain name does not match the local IP address"
-  print_error "Are you sure to continue the installation? Enter [y/N] to continue"
-  case $install in
-  [yY][eE][sS] | [yY])
-    print_ok "Continue the installation"
-    ;;
-  *)
-    print_error "Installation terminated"
-    exit 1
-    ;;
-  esac
+  areYouSure
 fi
 
 #==========================
@@ -124,7 +133,7 @@ fi
 print_ok "Ensure you are Ubuntu 22.04..."
 if ! lsb_release -a | grep "Ubuntu 22.04" > /dev/null; then
   print_error "You are not using Ubuntu 22.04. Please upgrade your system to 22.04 and try again."
-  exit 1
+  areYouSure
 fi
 judge "Ensure you are Ubuntu 22.04"
 
@@ -145,7 +154,7 @@ fi
 print_ok "Testing network..."
 if ! curl -s --head  --request GET http://www.google.com/generate_204 | grep "204" > /dev/null; then
   print_error "You are not able to access Internet. Please check your network and try again!"
-  exit 1
+  areYouSure
 fi
 judge "Test network"
 
