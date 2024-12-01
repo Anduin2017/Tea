@@ -368,8 +368,12 @@ sudo bash -c "cat > /usr/local/etc/xray/config.json" <<EOF
 EOF
 port_exist_check 10000
 judge "Check port 10000"
+
 sudo systemctl restart xray.service
-judge "Setup xray"
+judge "Restart xray"
+
+sudo systemctl restart caddy
+judge "Restart caddy"
 
 #==========================
 # Output connection information
