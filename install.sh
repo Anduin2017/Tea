@@ -129,14 +129,14 @@ else
 fi
 
 #==========================
-# Ensure Ubuntu 22.04
+# Ensure Ubuntu 24.04
 #==========================
-print_ok "Ensure you are Ubuntu 22.04..."
-if ! lsb_release -a | grep "Ubuntu 22.04" > /dev/null; then
-  print_error "You are not using Ubuntu 22.04. Please upgrade your system to 22.04 and try again."
+print_ok "Ensure you are Ubuntu 24.04..."
+if ! lsb_release -a | grep "Ubuntu 24.04" > /dev/null; then
+  print_error "You are not using Ubuntu 24.04. Please upgrade your system to 24.04 and try again."
   areYouSure
 fi
-judge "Ensure you are Ubuntu 22.04"
+judge "Ensure you are Ubuntu 24.04"
 
 #==========================
 # Allow user to use sudo
