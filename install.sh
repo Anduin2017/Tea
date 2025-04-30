@@ -284,6 +284,10 @@ judge "Restart Tracer"
 # Setup reverse proxy
 #==========================
 print_ok "Setting up reverse proxy from $domain to Tracer(localhost:8080)..."
+sudo mkdir -p /var/log/caddy
+sudo touch    /var/log/caddy/caddy.log
+sudo chown caddy:caddy /var/log/caddy/caddy.log
+sudo chmod 600         /var/log/caddy/caddy.log
 sudo bash -c "cat > /etc/caddy/Caddyfile" <<EOF
 {
         email nobody@nodomain.com
