@@ -6,7 +6,7 @@ This project helps you drinking tea.
 
 ## Install
 
-First, buy a server with OS: Ubuntu 22.04.
+First, buy a server with OS: Ubuntu 25.04.
 
 Then, use `ssh` to connect to your Ubuntu server.
 
