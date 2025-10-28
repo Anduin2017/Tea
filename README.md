@@ -1,6 +1,6 @@
 # Tea
 
-[![ManHours](https://manhours.aiursoft.cn/r/gitlab.aiursoft.com/anduin/tea.svg)](https://gitlab.aiursoft.com/anduin/tea/-/commits/master?ref_type=heads)
+[![ManHours](https://manhours.aiursoft.com/r/gitlab.aiursoft.com/anduin/tea.svg)](https://gitlab.aiursoft.com/anduin/tea/-/commits/master?ref_type=heads)
 
 This project helps you drinking tea.
 
