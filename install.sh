@@ -275,7 +275,7 @@ judge "Install Caddy"
 print_ok "Deploying Tracer on Port 8080..."
 port_exist_check 8080
 judge "Check port 8080"
-curl -sL https://gitlab.aiursoft.cn/aiursoft/tracer/-/raw/master/install.sh | sudo bash -s 8080
+curl -sL https://gitlab.aiursoft.com/aiursoft/tracer/-/raw/master/install.sh | sudo bash -s 8080
 judge "Deploy Tracer"
 sudo systemctl restart tracer
 judge "Restart Tracer"
