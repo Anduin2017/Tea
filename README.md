@@ -13,7 +13,7 @@ Then, use `ssh` to connect to your Ubuntu server.
 Then run:
 
 ```bash
-bash -c "$(wget -O- https://gitlab.aiursoft.com/anduin/tea/-/raw/master/install.sh)"
+bash -c "$(wget -O- https://raw.githubusercontent.com/Anduin2017/Tea/refs/heads/master/install.sh)"
 ```
 
 That's it!
