@@ -110,6 +110,14 @@ print_ok "Please press [ENTER] to continue, or press CTRL+C to cancel."
 read
 
 #==========================
+# Install dnsutils for dig
+#==========================
+print_ok "Installing dnsutils..."
+sudo apt update
+sudo apt install -y dnsutils
+judge "Install dnsutils"
+
+#==========================
 # Check if the DNS is correct
 #==========================
 read -rp "Enter your domain(eg: myserver.southeastasia.cloudapp.azure.com):" domain
@@ -203,6 +211,14 @@ sudo chown root:root /etc/apt/preferences.d/no-snap.pref
 judge "Remove snap"
 
 #==========================
+# Install software-properties-common for add-apt-repository
+#==========================
+print_ok "Installing software-properties-common..."
+sudo apt update
+sudo apt install -y software-properties-common
+judge "Install software-properties-common"
+
+#==========================
 # Set apt sources
 #==========================
 print_ok "Setting apt sources..."
@@ -218,8 +234,8 @@ judge "Add multiverse, universe, restricted"
 print_ok "Installing basic packages..."
 sudo systemctl daemon-reload
 DEBIAN_FRONTEND=noninteractive sudo apt update
-DEBIAN_FRONTEND=noninteractive sudo apt install -y ca-certificates wget gpg curl apt-transport-https software-properties-common gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping dnsutils zip unzip jq golang-go debian-keyring debian-archive-keyring
-judge "Install wget,gpg,curl,apt-transport-https,software-properties-common,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,dnsutils,zip,unzip,jq,golang-go,debian-keyring,debian-archive-keyring"
+DEBIAN_FRONTEND=noninteractive sudo apt install -y ca-certificates wget gpg curl apt-transport-https gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping zip unzip jq golang-go debian-keyring debian-archive-keyring
+judge "Install wget,gpg,curl,apt-transport-https,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,zip,unzip,jq,golang-go,debian-keyring,debian-archive-keyring"
 
 #==========================
 # Enable BBR
