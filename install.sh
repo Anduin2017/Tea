@@ -12,14 +12,10 @@ export DEBIAN_FRONTEND=noninteractive
 #==========================
 Green="\033[32m"
 Red="\033[31m"
-Yellow="\033[33m"
 Blue="\033[36m"
 Font="\033[0m"
-GreenBG="\033[42;37m"
-RedBG="\033[41;37m"
 OK="${Green}[  OK  ]${Font}"
 ERROR="${Red}[FAILED]${Font}"
-WARNING="${Yellow}[ WARN ]${Font}"
 
 #==========================
 # Print Colorful Text
@@ -110,12 +106,13 @@ print_ok "Please press [ENTER] to continue, or press CTRL+C to cancel."
 read
 
 #==========================
-# Install dnsutils for dig
+# Install deployment dependencies (uses the default Ubuntu repositories)
 #==========================
-print_ok "Installing dnsutils..."
+print_ok "Installing deployment dependencies..."
 sudo apt update
-sudo apt install -y dnsutils
-judge "Install dnsutils"
+judge "Update apt sources"
+sudo apt install -y ca-certificates curl dnsutils git gpg lsb-release lsof unzip wget
+judge "Install deployment dependencies"
 
 #==========================
 # Check if the DNS is correct
@@ -137,14 +134,14 @@ else
 fi
 
 #==========================
-# Ensure Ubuntu 25.04
+# Ensure Ubuntu 26.04
 #==========================
-print_ok "Ensure you are Ubuntu 25.04..."
-if ! lsb_release -a | grep "Ubuntu 25.04" > /dev/null; then
-  print_error "You are not using Ubuntu 25.04. Please upgrade your system to 25.04 and try again."
+print_ok "Ensure you are Ubuntu 26.04..."
+if ! lsb_release -a | grep "Ubuntu 26.04" > /dev/null; then
+  print_error "You are not using Ubuntu 26.04. Please upgrade your system to 26.04 and try again."
   areYouSure
 fi
-judge "Ensure you are Ubuntu 25.04"
+judge "Ensure you are Ubuntu 26.04"
 
 #==========================
 # Allow user to use sudo
@@ -211,33 +208,6 @@ sudo chown root:root /etc/apt/preferences.d/no-snap.pref
 judge "Remove snap"
 
 #==========================
-# Install software-properties-common for add-apt-repository
-#==========================
-print_ok "Installing software-properties-common..."
-sudo apt update
-sudo apt install -y software-properties-common
-judge "Install software-properties-common"
-
-#==========================
-# Set apt sources
-#==========================
-print_ok "Setting apt sources..."
-#sudo add-apt-repository ppa:longsleep/golang-backports -y
-sudo add-apt-repository -y multiverse -n
-sudo add-apt-repository -y universe -n
-sudo add-apt-repository -y restricted -n
-judge "Add multiverse, universe, restricted"
-
-#==========================
-# Update apt sources
-#==========================
-print_ok "Installing basic packages..."
-sudo systemctl daemon-reload
-DEBIAN_FRONTEND=noninteractive sudo apt update
-DEBIAN_FRONTEND=noninteractive sudo apt install -y ca-certificates wget gpg curl apt-transport-https gnupg net-tools git lsb-release vim nano curl aria2 ffmpeg iputils-ping zip unzip jq golang-go debian-keyring debian-archive-keyring
-judge "Install wget,gpg,curl,apt-transport-https,gnupg,net-tools,git,lsb-release,vim,nano,curl,aria2,ffmpeg,iputils-ping,zip,unzip,jq,golang-go,debian-keyring,debian-archive-keyring"
-
-#==========================
 # Enable BBR
 #==========================
 enable_bbr_force()
@@ -275,10 +245,9 @@ echo "y" | sudo ufw enable
 judge "Enable UFW"
 
 #==========================
-# Building Caddy
+# Install Caddy
 #==========================
 print_ok "Installing Caddy..."
-DEBIAN_FRONTEND=noninteractive sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg --yes
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
 DEBIAN_FRONTEND=noninteractive sudo apt update
