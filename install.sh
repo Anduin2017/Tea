@@ -1,4 +1,5 @@
 #!/bin/bash
+set -o pipefail
 
 #==========================
 # Basic Information
@@ -81,29 +82,30 @@ get_uuid() {
 # Port exist check function
 #==========================
 function port_exist_check() {
-  if [[ 0 -eq $(sudo lsof -i:"$1" | grep -i -c "listen") ]]; then
-    print_ok "$1 is not in use"
-    sleep 1
-  else
-    print_error "Warning: $1 is occupied"
-    sudo lsof -i:"$1"
-    print_error "Will kill the occupied process in 5s"
-    sleep 5
-    sudo lsof -i:"$1" | awk '{print $2}' | grep -v "PID" | sudo xargs kill -9
-    print_ok "Killed the occupied process"
-    sleep 1
+  local listeners status
+  listeners=$(sudo lsof -nP -iTCP:"$1" -sTCP:LISTEN 2>&1)
+  status=$?
+  if (( status == 0 )); then
+    print_error "Port $1 is occupied. Stop the conflicting service before installing."
+    printf '%s\n' "$listeners"
+    exit 1
+  elif (( status != 1 )) || [[ -n "$listeners" ]]; then
+    print_error "Could not check port $1."
+    printf '%s\n' "$listeners"
+    exit 1
   fi
+  print_ok "$1 is not in use"
 }
 
 #==========================
 # Begin of the installation
 #==========================
 clear
-cd ~
+cd ~ || exit 1
 echo "The command you are running is deploying tea on Ubuntu $(lsb_release -sc)."
 echo "This may introduce non-open-source software to your system."
 print_ok "Please press [ENTER] to continue, or press CTRL+C to cancel."
-read
+read -r
 
 #==========================
 # Install deployment dependencies (uses the default Ubuntu repositories)
@@ -119,14 +121,14 @@ judge "Install deployment dependencies"
 #==========================
 read -rp "Enter your domain(eg: myserver.southeastasia.cloudapp.azure.com):" domain
 print_ok "Getting the IP of $domain ..."
-domain_ip=$(dig +short ${domain} | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
+domain_ip=$(dig +short "$domain" | grep -E "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | head -n 1)
 judge "Got the IP of domain is $domain_ip"
 
 print_ok "Getting the local IP of this server ..."
-local_ipv4=$(curl -4 ip.sb)
+local_ipv4=$(curl -4fsS https://ip.sb)
 judge "Got the local IP of this server is $local_ipv4"
 
-if [[ $domain_ip == $local_ipv4 ]]; then
+if [[ $domain_ip == "$local_ipv4" ]]; then
   print_ok "Domain name resolution IP address is the same as the local IP address"
 else
   print_error "The IP address resolved by the domain name does not match the local IP address"
@@ -146,11 +148,11 @@ judge "Ensure you are Ubuntu 26.04"
 #==========================
 # Allow user to use sudo
 #==========================
-if ! sudo grep -q "$USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers.d/$USER; then
+if ! sudo grep -q "$USER ALL=(ALL) NOPASSWD:ALL" "/etc/sudoers.d/$USER"; then
   print_ok "Adding $USER to sudoers..."
   sudo mkdir -p /etc/sudoers.d
-  sudo touch /etc/sudoers.d/$USER
-  echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/$USER
+  sudo touch "/etc/sudoers.d/$USER"
+  echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a "/etc/sudoers.d/$USER"
   judge "Add $USER to sudoers"
 fi
 
@@ -158,19 +160,21 @@ fi
 # Test network
 #==========================
 print_ok "Testing network..."
-if ! curl -s --head  --request GET http://www.google.com/generate_204 | grep "204" > /dev/null; then
+if ! curl -fsS --head --request GET https://www.google.com/generate_204 | grep "204" > /dev/null; then
   print_error "You are not able to access Internet. Please check your network and try again!"
   areYouSure
 fi
 judge "Test network"
 
 #==========================
-# Check port 80 & 443
+# Check required ports before changing existing services
 #==========================
-print_ok "Checking port 80 & 443..."
+print_ok "Checking ports 80, 443, 8080 and 10000..."
 port_exist_check 80
 port_exist_check 443
-judge "Check port 80 & 443"
+port_exist_check 8080
+port_exist_check 10000
+judge "Check required ports"
 
 #==========================
 # Remove ubuntu-advantage advertisement
@@ -218,7 +222,7 @@ enable_bbr_force()
     sudo sysctl -p
     judge "Enable BBR"
 }
-sysctl net.ipv4.tcp_available_congestion_control | grep -q bbr ||  enable_bbr_force
+[[ $(sysctl -n net.ipv4.tcp_congestion_control) == bbr ]] || enable_bbr_force
 print_ok "BBR enabled"
 
 #==========================
@@ -249,21 +253,27 @@ judge "Enable UFW"
 #==========================
 print_ok "Installing Caddy..."
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg --yes
+judge "Download Caddy signing key"
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+judge "Configure Caddy repository"
+sudo chmod 644 /usr/share/keyrings/caddy-stable-archive-keyring.gpg /etc/apt/sources.list.d/caddy-stable.list
+judge "Set Caddy repository permissions"
 DEBIAN_FRONTEND=noninteractive sudo apt update
-DEBIAN_FRONTEND=noninteractive sudo apt install caddy
+judge "Update Caddy package index"
+DEBIAN_FRONTEND=noninteractive sudo apt install -y caddy
 judge "Install Caddy"
 
 #==========================
 # Deploy Tracer on Port 8080
 #==========================
 print_ok "Deploying Tracer on Port 8080..."
-port_exist_check 8080
-judge "Check port 8080"
-curl -sL https://github.com/aiursoftweb/tracer/raw/master/install.sh | sudo bash -s 8080
+curl -fsSL https://raw.githubusercontent.com/aiursoftweb/tracer/master/install.sh | sudo bash -s -- 8080
 judge "Deploy Tracer"
 sudo systemctl restart tracer
 judge "Restart Tracer"
+curl -fsS --retry 10 --retry-all-errors --retry-delay 2 --retry-max-time 60 \
+  --connect-timeout 3 --max-time 5 --output /dev/null http://127.0.0.1:8080/health
+judge "Wait for Tracer to become ready"
 
 #==========================
 # Setup reverse proxy
@@ -315,7 +325,8 @@ judge "Restart caddy"
 # Install xray
 #==========================
 print_ok "Installing xray..."
-sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+curl -fsSL https://raw.githubusercontent.com/XTLS/Xray-install/main/install-release.sh | sudo bash -s -- install
+judge "Install Xray binaries"
 sudo touch /usr/local/etc/xray/config.json
 sudo systemctl restart xray.service
 judge "Install xray"
@@ -355,9 +366,6 @@ sudo bash -c "cat > /usr/local/etc/xray/config.json" <<EOF
     ]
 }
 EOF
-port_exist_check 10000
-judge "Check port 10000"
-
 sudo systemctl restart xray.service
 judge "Restart xray"
 
@@ -371,9 +379,9 @@ print_ok "Connection information:"
 print_ok "Domain: $domain"
 print_ok "UUID: $uuid"
 print_ok "Tracer: https://$domain"
-print_ok "Xray: wss://$domain:10000"
+print_ok "Xray: wss://$domain:443/admin"
 print_ok "URL (TLS+Websocket)"
-print_ok "vless://$uuid@$domain?host=$domain&path=%2Fadmin&type=ws&encryption=none&security=tls&sni=$domain#$domain"
+print_ok "vless://$uuid@$domain:443?host=$domain&path=%2Fadmin&type=ws&encryption=none&security=tls&sni=$domain#$domain"
 
 #==========================
 # Optimize system
@@ -401,7 +409,7 @@ sudo sed -i '/net.ipv4.tcp_timestamps/d' /etc/sysctl.conf
 sudo sed -i '/net.ipv4.tcp_max_orphans/d' /etc/sysctl.conf
 sudo sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
 
-echo "net.ipv4.tcp_retries2 = 8
+echo "net.ipv4.tcp_retries2 = 15
 net.ipv4.tcp_slow_start_after_idle = 0
 fs.file-max = 1000000
 fs.inotify.max_user_instances = 8192
@@ -412,14 +420,16 @@ net.ipv4.ip_local_port_range = 1024 65000
 net.ipv4.tcp_max_syn_backlog = 16384
 net.ipv4.tcp_max_tw_buckets = 6000
 net.ipv4.route.gc_timeout = 100
-net.ipv4.tcp_syn_retries = 1
-net.ipv4.tcp_synack_retries = 1
+net.ipv4.tcp_syn_retries = 6
+net.ipv4.tcp_synack_retries = 5
 net.core.somaxconn = 32768
 net.core.netdev_max_backlog = 32768
 net.ipv4.tcp_timestamps = 0
 net.ipv4.tcp_max_orphans = 32768
 # forward ipv4
 #net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
+judge "Save TCP settings"
 sudo sysctl -p
+judge "Apply TCP settings"
 
 print_ok "Program completed, enjoy your tea! And it's suggested to restart the server."
