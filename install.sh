@@ -7,6 +7,7 @@ set -o pipefail
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
+sysctl_file="/etc/sysctl.d/99-tea.conf"
 
 #==========================
 # Color
@@ -217,9 +218,11 @@ judge "Remove snap"
 enable_bbr_force()
 {
     echo "BBR not enabled. Enabling BBR..."
-    echo 'net.core.default_qdisc=fq' | sudo tee -a /etc/sysctl.conf
-    echo 'net.ipv4.tcp_congestion_control=bbr' | sudo tee -a /etc/sysctl.conf
-    sudo sysctl -p
+    sudo mkdir -p /etc/sysctl.d
+    judge "Prepare BBR settings"
+    printf '%s\n' 'net.core.default_qdisc=fq' 'net.ipv4.tcp_congestion_control=bbr' | sudo tee "$sysctl_file"
+    judge "Save BBR settings"
+    sudo sysctl -p "$sysctl_file"
     judge "Enable BBR"
 }
 [[ $(sysctl -n net.ipv4.tcp_congestion_control) == bbr ]] || enable_bbr_force
@@ -386,30 +389,11 @@ print_ok "vless://$uuid@$domain:443?host=$domain&path=%2Fadmin&type=ws&encryptio
 #==========================
 # Optimize system
 #==========================
-if [ ! -f "/etc/sysctl.conf" ]; then
-  sudo touch /etc/sysctl.conf
-fi
-sudo sed -i '/net.ipv4.tcp_retries2/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_slow_start_after_idle/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_fastopen/d' /etc/sysctl.conf
-sudo sed -i '/fs.file-max/d' /etc/sysctl.conf
-sudo sed -i '/fs.inotify.max_user_instances/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_syncookies/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_fin_timeout/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_tw_reuse/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_max_syn_backlog/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.ip_local_port_range/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_max_tw_buckets/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.route.gc_timeout/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_synack_retries/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_syn_retries/d' /etc/sysctl.conf
-sudo sed -i '/net.core.somaxconn/d' /etc/sysctl.conf
-sudo sed -i '/net.core.netdev_max_backlog/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_timestamps/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.tcp_max_orphans/d' /etc/sysctl.conf
-sudo sed -i '/net.ipv4.ip_forward/d' /etc/sysctl.conf
-
-echo "net.ipv4.tcp_retries2 = 15
+sudo mkdir -p /etc/sysctl.d
+judge "Prepare TCP settings"
+echo "net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.tcp_retries2 = 15
 net.ipv4.tcp_slow_start_after_idle = 0
 fs.file-max = 1000000
 fs.inotify.max_user_instances = 8192
@@ -427,9 +411,11 @@ net.core.netdev_max_backlog = 32768
 net.ipv4.tcp_timestamps = 0
 net.ipv4.tcp_max_orphans = 32768
 # forward ipv4
-#net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
+#net.ipv4.ip_forward = 1" | sudo tee "$sysctl_file"
 judge "Save TCP settings"
-sudo sysctl -p
+sudo chmod 644 "$sysctl_file"
+judge "Set TCP settings permissions"
+sudo sysctl -p "$sysctl_file"
 judge "Apply TCP settings"
 
 print_ok "Program completed, enjoy your tea! And it's suggested to restart the server."
